@@ -1,0 +1,35 @@
+#cloud-config
+write_files:
+  - content: |
+      # server config file
+      datacenter = "aws"
+      data_dir = "/opt/consul"
+      client_addr = "0.0.0.0"
+      ui_config {
+        enabled = true
+      }
+      server = true
+      bind_addr = "0.0.0.0"
+      advertise_addr = "{{GetInterfaceIP \"eth0\"}}"
+      advertise_addr_wan = "{{GetInterfaceIP \"eth0\"}}"
+      bootstrap_expect = ${consul_bootstrap_expect}
+      retry_join = ["${consul_retry_join}"]
+    permissions: '0750'
+    path: /etc/consul.hcl.cloud_init
+runcmd:
+  - until ping -c1 archive.ubuntu.com &>/dev/null; do echo "waiting for networking to initialise" ; sleep 3 ; done 
+  - curl https://my-netdata.io/kickstart.sh -o /var/tmp/netdata-kickstart.sh
+  - sudo sh /var/tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --disable-cloud
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  - sudo apt-get update
+  - sudo apt-get install -y consul
+  - sudo cp /etc/consul.d/consul.hcl /etc/consul.hcl.apt
+  - sudo cp /etc/consul.hcl.cloud_init /etc/consul.d/consul.hcl
+  - sudo chown consul:consul /etc/consul.d/consul.hcl
+  - sudo systemctl enable consul
+  - sudo systemctl stop consul
+  - sudo systemctl start consul
+packages_update: true
+packages:
+  - unzip

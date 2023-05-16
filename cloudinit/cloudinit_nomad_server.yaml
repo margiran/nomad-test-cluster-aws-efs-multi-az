@@ -1,0 +1,58 @@
+#cloud-config
+write_files:
+  - content: |
+      # server config file
+      datacenter = "aws"
+      data_dir = "/opt/consul"
+      client_addr = "0.0.0.0"
+      bind_addr = "0.0.0.0"
+      advertise_addr = "{{GetInterfaceIP \"eth0\"}}"
+      advertise_addr_wan = "{{GetInterfaceIP \"eth0\"}}"
+      retry_join = ["${consul_retry_join}"]
+    permissions: '0750'
+    path: /etc/consul.hcl.cloud_init
+  - content: |
+      # server config file
+      datacenter="aws"
+      data_dir  = "/opt/nomad/data"
+      bind_addr = "0.0.0.0"
+      server {
+        enabled = true
+        bootstrap_expect = ${nomad_bootstrap_expect}
+        server_join {
+          retry_join = ["${nomad_retry_join}"]
+          retry_max = 5
+          retry_interval = "15s"
+        }
+        # acl {
+        #   enabled = false
+        # }
+        #if OSS binary is used then the license configuration is ignored
+        #license_path = "/etc/nomad.d/nomad.hclic"
+      }
+    permissions: '0750'
+    path: /etc/nomad.hcl.cloud_init
+runcmd:
+  - until ping -c1 archive.ubuntu.com &>/dev/null; do echo "waiting for networking to initialise" ; sleep 3 ; done 
+  - curl https://my-netdata.io/kickstart.sh -o /var/tmp/netdata-kickstart.sh
+  - sudo sh /var/tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --disable-cloud
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  - sudo apt-get update
+  - sudo apt-get install -y consul
+  - sudo cp /etc/consul.d/consul.hcl /etc/consul.hcl.apt
+  - sudo cp /etc/consul.hcl.cloud_init /etc/consul.d/consul.hcl
+  - sudo chown consul:consul /etc/consul.d/consul.hcl
+  - sudo systemctl enable consul
+  - sudo systemctl stop consul
+  - sudo systemctl start consul
+  - sudo apt-get install -y nomad
+  - sudo cp /etc/nomad.d/nomad.hcl /etc/nomad.hcl.apt
+  - sudo cp /etc/nomad.hcl.cloud_init /etc/nomad.d/nomad.hcl
+  - sudo chown nomad:nomad /etc/nomad.d/nomad.hcl
+  - sudo systemctl enable nomad
+  - sudo systemctl stop nomad
+  - sudo systemctl start nomad
+packages_update: true
+packages:
+  - unzip

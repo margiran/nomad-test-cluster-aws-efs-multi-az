@@ -1,0 +1,74 @@
+#cloud-config
+write_files:
+  - content: |
+      # server config file
+      datacenter = "aws"
+      data_dir = "/opt/consul"
+      client_addr = "0.0.0.0"
+      bind_addr = "0.0.0.0"
+      advertise_addr = "{{GetInterfaceIP \"eth0\"}}"
+      advertise_addr_wan = "{{GetInterfaceIP \"eth0\"}}"
+      retry_join = ["${consul_retry_join}"]
+      ports {
+        grpc = 8502
+      }
+      connect {
+        enabled = true
+      }
+    permissions: '0750'
+    path: /etc/consul.hcl.cloud_init
+  - content: |
+      # client config file
+      datacenter="aws"
+      data_dir  = "/opt/nomad/data"
+      bind_addr = "0.0.0.0"
+      client {
+        enabled = true
+        server_join {
+          retry_join = ["${nomad_retry_join}"]
+          retry_max = 5
+          retry_interval = "15s"
+        }
+        options = {
+         "driver.raw_exec" = "1"
+         "driver.raw_exec.enable" = "1"
+        }
+      }
+      plugin "docker" {
+        config {
+          allow_privileged = true
+        }
+      }
+      
+    permissions: '0750'
+    path: /etc/nomad.hcl.cloud_init
+runcmd:
+  - until ping -c1 archive.ubuntu.com &>/dev/null; do echo "waiting for networking to initialise" ; sleep 3 ; done
+  - curl https://my-netdata.io/kickstart.sh -o /var/tmp/netdata-kickstart.sh
+  - sudo sh /var/tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --disable-cloud
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  - curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/releases/download/v1.0.0/cni-plugins-linux-$( [ $(uname -m) = aarch64 ] && echo arm64 || echo amd64)"-v1.0.0.tgz
+  - sudo mkdir -p /opt/cni/bin
+  - sudo tar -C /opt/cni/bin -xzf cni-plugins.tgz
+  - sudo apt-get update
+  - sudo apt-get install -y consul
+  - sudo cp /etc/consul.d/consul.hcl /etc/consul.hcl.apt
+  - sudo cp /etc/consul.hcl.cloud_init /etc/consul.d/consul.hcl
+  - sudo chown consul:consul /etc/consul.d/consul.hcl
+  - sudo systemctl enable consul
+  - sudo systemctl stop consul
+  - sudo systemctl start consul
+  - sudo apt-get install -y nomad
+  - sudo cp /etc/nomad.d/nomad.hcl /etc/nomad.hcl.apt
+  - sudo cp /etc/nomad.hcl.cloud_init /etc/nomad.d/nomad.hcl
+  - sudo chown nomad:nomad /etc/nomad.d/nomad.hcl
+  - sudo systemctl enable nomad
+  - sudo systemctl stop nomad
+  - sudo systemctl start nomad
+packages_update: true
+packages:
+  - unzip
+  - docker.io
+  - default-jre
+  - default-jdk
