@@ -3,12 +3,7 @@ job "test-csi" {
   type        = "service"
   priority    = 50
 
-  # constraint {
-  #   attribute = "${node.unique.name}"
-  #   value     = "dev-nomad-privilege-client-swift-2"
-  # }
-
-  group "test-group" {
+   group "test-group" {
     count = 2
 
     constraint {
