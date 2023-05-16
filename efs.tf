@@ -15,26 +15,19 @@ resource "aws_efs_mount_target" "efs-test-mount-target" {
   security_groups = ["${aws_security_group.efs-test-sg.id}"]
 }
 
-#   resource "aws_subnet" "subnet-efs" {
-#   #  cidr_block = "${cidrsubnet(aws_vpc.default.cidr_block, 8, 8)}"
-#    vpc_id = "${aws_vpc.my_vpc.id}"
-#    availability_zone = "us-east-2b"
-#  }
-
 resource "aws_security_group" "efs-test-sg" {
   name   = "efs-test-sg-${random_pet.pet.id}_${terraform.workspace}"
   vpc_id = aws_vpc.my_vpc.id
+   egress {
+    security_groups = ["${aws_security_group.instances.id}"]
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+  }
   ingress {
     security_groups = ["${aws_security_group.instances.id}"]
     from_port       = 2049
     to_port         = 2049
     protocol        = "tcp"
-  }
-
-  egress {
-    security_groups = ["${aws_security_group.instances.id}"]
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
   }
 }

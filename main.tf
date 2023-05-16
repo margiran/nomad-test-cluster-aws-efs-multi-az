@@ -11,8 +11,6 @@ provider "aws" {
   region = var.region
 }
 
-
-
 resource "aws_subnet" "subnet" {
   count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.my_vpc.id
@@ -24,15 +22,20 @@ resource "aws_subnet" "subnet" {
     Name = "subnet-${var.availability_zones[count.index]}-${random_pet.pet.id}_${terraform.workspace}"
   }
 }
-# resource "tls_private_key" "private_key" {
-#   algorithm = "RSA"
-#   rsa_bits  = 4096
+
+# resource "aws_key_pair" "my_key" {
+#   key_name = "key-terraform-${random_pet.pet.id}_${terraform.workspace}"
+
+#   public_key = file("~/.ssh/key_pair.pub")
 # }
 
-resource "aws_key_pair" "my_key" {
-  key_name = "key-terraform-${random_pet.pet.id}_${terraform.workspace}"
+resource "tls_private_key" "private_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 
-  public_key = file("~/.ssh/key_pair.pub")
+resource "aws_key_pair" "my_key" {
+  public_key = tls_private_key.private_key.public_key_openssh
 }
 
 data "http" "myip" {
@@ -51,25 +54,7 @@ resource "random_pet" "pet" {
 resource "aws_security_group" "instances" {
   name   = "${var.security_group_name}-${random_pet.pet.id}_${terraform.workspace}"
   vpc_id = aws_vpc.my_vpc.id
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
-  }
-  ingress {
-    from_port   = 3000
-    to_port     = 3010
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
-  }
-  ingress {
-    from_port   = 9000
-    to_port     = 9010
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
-  }
-
+ 
   # opening port used by consul
   ingress {
     from_port   = 8300

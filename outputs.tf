@@ -1,8 +1,8 @@
-# output "private_key_pem" {
-#   description = "The private key (save this in a .pem file) for ssh to instances"
-#   value       = tls_private_key.private_key.private_key_pem
-#   sensitive   = true
-# }
+output "private_key_pem" {
+  description = "The private key (save this in a .pem file) for ssh to instances"
+  value       = tls_private_key.private_key.private_key_pem
+  sensitive   = true
+}
 output "consul_server_public_ip" {
   description = "The public IP of the EC2 Instance "
   value       = aws_instance.consul_server[*].public_ip
