@@ -62,6 +62,48 @@ terraform output nomad_addr_nomad_server_public_ip
 export NOMAD_ADDR=http://10.10.10.10:4646
 ```
 
+- to check nomad jobs ( plugin jobs )
+
+```
+nomad job status
+```
+
+- to check the csi plugin 
+
+```
+nomad plugin status aws-efs0
+```
+
+- to check the volume status
+
+```
+nomad volume status volume-test
+```
+
+- to check the mounted volumes 
+
+```
+$ nomad job status test-csi
+
+ID            = test-csi
+Name          = test-csi
+.
+.
+.
+
+Allocations
+ID        Node ID   Task Group  Version  Desired  Status   Created     Modified
+c8ce16be  5dc200c1  test-group  0        run      running  17m12s ago  16m55s ago
+8e88b8e9  a731dd38  test-group  0        run      running  17m42s ago  17m21s ago
+
+$ nomad alloc exec -i -t -task volumetest c8ce16be df
+Filesystem            1K-blocks    Used        Available Use% Mounted on
+ .
+127.0.0.1:/    9007199254739968       0 9007199254739968   0% /data
+ .
+ .
+```
+
 ### Clean up when you're done:
 
 ```

@@ -34,8 +34,6 @@ write_files:
     path: /etc/nomad.hcl.cloud_init
 runcmd:
   - until ping -c1 archive.ubuntu.com &>/dev/null; do echo "waiting for networking to initialise" ; sleep 3 ; done 
-  - curl https://my-netdata.io/kickstart.sh -o /var/tmp/netdata-kickstart.sh
-  - sudo sh /var/tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --disable-cloud
   - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
   - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
   - sudo apt-get update

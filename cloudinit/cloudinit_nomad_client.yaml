@@ -44,8 +44,6 @@ write_files:
     path: /etc/nomad.hcl.cloud_init
 runcmd:
   - until ping -c1 archive.ubuntu.com &>/dev/null; do echo "waiting for networking to initialise" ; sleep 3 ; done
-  - curl https://my-netdata.io/kickstart.sh -o /var/tmp/netdata-kickstart.sh
-  - sudo sh /var/tmp/netdata-kickstart.sh --stable-channel --disable-telemetry --disable-cloud
   - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
   - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
   - curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/releases/download/v1.0.0/cni-plugins-linux-$( [ $(uname -m) = aarch64 ] && echo arm64 || echo amd64)"-v1.0.0.tgz

@@ -36,7 +36,7 @@ output "client_private_ip" {
 output "ssh_consul_server_public_ip" {
   description = "Command for ssh to the Server public IP of the EC2 Instance"
   value = [
-    for k in aws_instance.consul_server : "ssh ubuntu@${k.public_ip} -i ~/.ssh/key_pair"
+    for k in aws_instance.consul_server : "ssh ubuntu@${k.public_ip} -i ~/.ssh/terraform.pem"
   ]
 }
 
@@ -54,17 +54,10 @@ output "consul_addr_consul_server_public_ip" {
   ]
 }
 
-output "netdata_consul_server_public_ip" {
-  description = "Command for netdata to the Server public IP of the EC2 Instance"
-  value = [
-    for k in aws_instance.consul_server : "http://${k.public_ip}:19999"
-  ]
-}
-
 output "ssh_nomad_server_public_ip" {
   description = "Command for ssh to the Server public IP of the EC2 Instance"
   value = [
-    for k in aws_instance.nomad_server : "ssh ubuntu@${k.public_ip} -i ~/.ssh/key_pair"
+    for k in aws_instance.nomad_server : "ssh ubuntu@${k.public_ip} -i ~/.ssh/terraform.pem"
   ]
 }
 
@@ -82,24 +75,10 @@ output "nomad_addr_nomad_server_public_ip" {
   ]
 }
 
-output "netdata_nomad_server_public_ip" {
-  description = "Command for netdata to the Server public IP of the EC2 Instance"
-  value = [
-    for k in aws_instance.nomad_server : "http://${k.public_ip}:19999"
-  ]
-}
-
 output "ssh_client_public_ip" {
   description = "Command for ssh to the Client public IP of the EC2 Instance"
   value = [
-    for k in aws_instance.nomad_client : "ssh ubuntu@${k.public_ip} -i ~/.ssh/key_pair"
-  ]
-}
-
-output "netdata_client_public_ip" {
-  description = "Command for netdata to the Server public IP of the EC2 Instance"
-  value = [
-    for k in aws_instance.nomad_client : "http://${k.public_ip}:19999"
+    for k in aws_instance.nomad_client : "ssh ubuntu@${k.public_ip} -i ~/.ssh/terraform.pem"
   ]
 }
 
@@ -107,7 +86,7 @@ output "efs_mount_target_dns_name" {
   description = "efs"
   # value = "${aws_efs_mount_target.efs-mt-example.dns_name }"
   value = [
-    for k in aws_efs_mount_target.efs-test-mount-target : "http://${k.dns_name}"
+    for k in aws_efs_mount_target.efs-test-mount-target : "${k.dns_name}"
   ]
 }
 

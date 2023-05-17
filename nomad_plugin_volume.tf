@@ -4,12 +4,12 @@ provider "nomad" {
 
 resource "nomad_job" "csi-plugin-controller" {
   jobspec    = file("./nomad-jobs/plugin-efs-controller.nomad")
-  depends_on = [aws_instance.nomad_server]
+  depends_on = [aws_instance.nomad_client]
 }
 
 resource "nomad_job" "csi-plugin-node" {
   jobspec    = file("./nomad-jobs/plugin-efs-nodes.nomad")
-  depends_on = [aws_instance.nomad_server]
+  depends_on = [aws_instance.nomad_client]
 }
 
 data "nomad_plugin" "csi-plugin" {

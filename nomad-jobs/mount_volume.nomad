@@ -13,7 +13,7 @@ job "test-csi" {
 
     restart {
       attempts = 3
-      delay    = "30s"
+      delay    = "60s"
     }
 
     volume "efs-volume" {
@@ -34,12 +34,9 @@ job "test-csi" {
       }
 
       config {
-        image = "ubuntu:latest"
-        args = [
-          "sleep", "2d"
-        ]
+        image = "redis"
       }
-      
+
       resources {
         cpu    = 300
         memory = 512
