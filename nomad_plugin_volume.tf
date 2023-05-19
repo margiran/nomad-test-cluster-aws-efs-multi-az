@@ -12,17 +12,9 @@ resource "nomad_job" "csi-plugin-node" {
   depends_on = [aws_instance.nomad_client]
 }
 
-data "nomad_plugin" "csi-plugin" {
-  count                 = 1
-  plugin_id             = "aws-efs0"
-  wait_for_registration = true
-  wait_for_healthy      = true
-  depends_on            = [nomad_job.csi-plugin-controller]
-}
-
 resource "nomad_volume" "csi_volume_test" {
   type        = "csi"
-  plugin_id   = data.nomad_plugin.csi-plugin[0].plugin_id
+  plugin_id   = "aws-efs0"
   volume_id   = "volume-test"
   name        = "volume-test"
   external_id = aws_efs_file_system.efs-test.id

@@ -7,7 +7,7 @@ job "plugin-aws-efs-controller" {
       driver = "docker"
 
       config {
-        image = "amazon/aws-efs-csi-driver:v1.3.5"
+        image = "amazon/aws-efs-csi-driver:latest"
 
         args = [
           "--endpoint=unix://csi/csi.sock",
@@ -22,6 +22,7 @@ job "plugin-aws-efs-controller" {
         id        = "aws-efs0"
         type      = "controller"
         mount_dir = "/csi"
+        health_timeout="2m"
       }
 
       resources {

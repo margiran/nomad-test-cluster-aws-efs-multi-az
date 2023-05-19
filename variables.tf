@@ -1,3 +1,4 @@
+
 variable "security_group_name" {
   description = "The name of the security group"
   type        = string
@@ -34,4 +35,11 @@ variable "region" {
 
 variable "availability_zones" {
   default = ["us-east-1a", "us-east-1b"]
+}
+
+variable "vpc-cidr" {
+    default = "10.0.0.0/16"
+}
+variable "subnets" {
+  default = ["10.0.0.0/20","10.0.16.0/20"]
 }

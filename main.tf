@@ -11,18 +11,6 @@ provider "aws" {
   region = var.region
 }
 
-resource "aws_subnet" "subnet" {
-  count                   = length(var.availability_zones)
-  vpc_id                  = aws_vpc.my_vpc.id
-  map_public_ip_on_launch = true
-  cidr_block              = cidrsubnet("10.0.0.0/16", 8, count.index)
-  availability_zone       = var.availability_zones[count.index]
-
-  tags = {
-    Name = "subnet-${var.availability_zones[count.index]}-${random_pet.pet.id}_${terraform.workspace}"
-  }
-}
-
 # resource "aws_key_pair" "my_key" {
 #   key_name = "key-terraform-${random_pet.pet.id}_${terraform.workspace}"
 
@@ -38,17 +26,17 @@ resource "aws_key_pair" "my_key" {
   public_key = tls_private_key.private_key.public_key_openssh
 }
 
+# the public_ip of my gw
 data "http" "myip" {
   url = "https://api.ipify.org"
 }
 
-# the public_ip of my gw
-locals {
-  myip = "${data.http.myip.response_body}/32"
-}
-
 resource "random_pet" "pet" {
   length = 1
+}
+
+locals {
+  ciderList=concat(var.subnets, ["${data.http.myip.response_body}/32",var.vpc-cidr])
 }
 
 resource "aws_security_group" "instances" {
@@ -60,7 +48,7 @@ resource "aws_security_group" "instances" {
     from_port   = 8300
     to_port     = 8302
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
+    cidr_blocks = local.ciderList
   }
 
   # opening port used by consul
@@ -68,7 +56,7 @@ resource "aws_security_group" "instances" {
     from_port   = 8500
     to_port     = 8500
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
+    cidr_blocks =  local.ciderList
   }
 
   # opening port used by nomad agents 
@@ -76,30 +64,23 @@ resource "aws_security_group" "instances" {
     from_port   = 4646
     to_port     = 4648
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
+    cidr_blocks =  local.ciderList
   }
   # opening port used by nomad agents 
   ingress {
     from_port   = 4646
     to_port     = 4648
     protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
+    cidr_blocks =  local.ciderList
   }
   # opening port 22 to be able to ssh to the instances
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
+    cidr_blocks =  local.ciderList
   }
-  # netdata monitoring
-  ingress {
-    description = "netdata from internet"
-    from_port   = 19999
-    to_port     = 19999
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0", local.myip]
-  }
+  
   # provide internet access to the instance (install packages, etc)
   egress {
     from_port   = 0

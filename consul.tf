@@ -1,6 +1,3 @@
-
-
-
 resource "aws_instance" "consul_server" {
   count                  = var.consul_server_count
   ami                    = data.aws_ami.ubuntu.id

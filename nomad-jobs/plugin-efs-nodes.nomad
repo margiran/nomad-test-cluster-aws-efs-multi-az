@@ -10,7 +10,7 @@ job "plugin-aws-efs-nodes" {
       driver = "docker"
 
       config {
-        image = "amazon/aws-efs-csi-driver:v1.3.5"
+        image = "amazon/aws-efs-csi-driver:latest"
 
         args = [
           "--endpoint=unix://csi/csi.sock",
@@ -20,13 +20,14 @@ job "plugin-aws-efs-nodes" {
 
         # node plugins must run as privileged jobs because they
         # mount disks to the host
-        privileged = true
+         privileged = true
       }
 
       csi_plugin {
         id        = "aws-efs0"
         type      = "node"
         mount_dir = "/csi"
+        health_timeout="2m"
       }
 
       resources {
