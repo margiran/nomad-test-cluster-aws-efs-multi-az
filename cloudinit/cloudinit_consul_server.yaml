@@ -1,6 +1,16 @@
 #cloud-config
 write_files:
   - content: |
+      # Enable forward lookup of the 'consul' domain:
+      server=/consul/127.0.0.1#8600
+    permissions: '0777'
+    path: /tmp/10-consul.dnsmasq
+  - content: |
+      # 99-default.dnsmasq
+      server=169.254.169.253
+    permissions: '0777'
+    path: /tmp/99-default.dnsmasq.aws
+  - content: |
       # server config file
       datacenter = "aws"
       data_dir = "/opt/consul"
@@ -21,7 +31,16 @@ runcmd:
   - curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
   - sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
   - sudo apt-get update
-  - sudo apt-get install -y consul
+  - sudo apt-get install -y consul dnsmasq
+  - echo "127.0.0.1 $(hostname)" | sudo tee --append /etc/hosts
+  - echo "DNSStubListener=no" | sudo tee -a /etc/systemd/resolved.conf
+  - sudo cp /tmp/10-consul.dnsmasq /etc/dnsmasq.d/10-consul
+  - sudo cp /tmp/99-default.dnsmasq.aws /etc/dnsmasq.d/99-default
+  - sudo mv /etc/resolv.conf /etc/resolv.conf.orig
+  - grep -v "nameserver" /etc/resolv.conf.orig | grep -v -e"^#" | grep -v -e '^$' | sudo tee /etc/resolv.conf
+  - echo "nameserver 127.0.0.1" | sudo tee -a /etc/resolv.conf
+  - sudo systemctl restart systemd-resolved
+  - sudo systemctl restart dnsmasq
   - sudo cp /etc/consul.d/consul.hcl /etc/consul.hcl.apt
   - sudo cp /etc/consul.hcl.cloud_init /etc/consul.d/consul.hcl
   - sudo chown consul:consul /etc/consul.d/consul.hcl

@@ -36,13 +36,19 @@ resource "random_pet" "pet" {
 }
 
 locals {
-  ciderList=concat(var.subnets, ["${data.http.myip.response_body}/32",var.vpc-cidr])
+  ciderList = concat(var.subnets, ["${data.http.myip.response_body}/32", var.vpc-cidr])
 }
 
 resource "aws_security_group" "instances" {
   name   = "${var.security_group_name}-${random_pet.pet.id}_${terraform.workspace}"
   vpc_id = aws_vpc.my_vpc.id
- 
+  ingress {
+    from_port   = 8200
+    to_port     = 8200
+    protocol    = "tcp"
+    cidr_blocks = local.ciderList
+  }
+
   # opening port used by consul
   ingress {
     from_port   = 8300
@@ -56,7 +62,7 @@ resource "aws_security_group" "instances" {
     from_port   = 8500
     to_port     = 8500
     protocol    = "tcp"
-    cidr_blocks =  local.ciderList
+    cidr_blocks = local.ciderList
   }
 
   # opening port used by nomad agents 
@@ -64,23 +70,23 @@ resource "aws_security_group" "instances" {
     from_port   = 4646
     to_port     = 4648
     protocol    = "tcp"
-    cidr_blocks =  local.ciderList
+    cidr_blocks = local.ciderList
   }
   # opening port used by nomad agents 
   ingress {
     from_port   = 4646
     to_port     = 4648
     protocol    = "udp"
-    cidr_blocks =  local.ciderList
+    cidr_blocks = local.ciderList
   }
   # opening port 22 to be able to ssh to the instances
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks =  local.ciderList
+    cidr_blocks = local.ciderList
   }
-  
+
   # provide internet access to the instance (install packages, etc)
   egress {
     from_port   = 0

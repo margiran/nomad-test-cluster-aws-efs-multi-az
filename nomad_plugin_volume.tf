@@ -24,7 +24,7 @@ resource "nomad_volume" "csi_volume_test" {
     attachment_mode = "file-system"
   }
   depends_on = [aws_efs_file_system.efs-test,
-  nomad_job.csi-plugin-controller]
+  nomad_job.csi-plugin-node]
 }
 
 resource "nomad_job" "using_volume" {

@@ -18,12 +18,6 @@ resource "aws_efs_mount_target" "efs-test-mount-target" {
 resource "aws_security_group" "efs-test-sg" {
   name   = "efs-test-sg-${random_pet.pet.id}_${terraform.workspace}"
   vpc_id = aws_vpc.my_vpc.id
-   egress {
-    security_groups = ["${aws_security_group.instances.id}"]
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-  }
   ingress {
     security_groups = ["${aws_security_group.instances.id}"]
     from_port       = 2049
