@@ -5,6 +5,7 @@ job "test-csi" {
 
   group "test-group" {
     count = 2
+    
     network {
       port "redis" {
         to = 6379

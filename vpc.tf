@@ -1,6 +1,7 @@
 resource "aws_vpc" "my_vpc" {
   cidr_block           = var.vpc-cidr
   enable_dns_hostnames = true
+  
   tags = {
     Name = "my_vpc-${random_pet.pet.id}_${terraform.workspace}"
   }
