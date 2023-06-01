@@ -3,9 +3,13 @@ job "test-csi" {
   type        = "service"
   priority    = 50
 
-   group "test-group" {
+  group "test-group" {
     count = 2
-
+    network {
+      port "redis" {
+        to = 6379
+      }
+    }
     constraint {
       operator = "distinct_hosts"
       value    = "true"
@@ -29,14 +33,28 @@ job "test-csi" {
 
       volume_mount {
         volume      = "efs-volume"
-        destination = "/data"
+        destination = "/efs"
         read_only   = false
       }
 
       config {
-        image = "redis"
+        image   = "redis"
+        ports   = ["redis"]
+        volumes = ["local/redis.conf:/usr/local/etc/redis/redis.conf"]
+        command = "redis-server"
+        args    = ["/usr/local/etc/redis/redis.conf"]
       }
-
+      template {
+        data        = <<EOF
+dbfilename dumpnew.rdb 
+dir /efs/ 
+appendonly yes 
+save 900 1
+save 300 10
+save 60 10000
+EOF
+        destination = "local/redis.conf"
+      }
       resources {
         cpu    = 300
         memory = 512

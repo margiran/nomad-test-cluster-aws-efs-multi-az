@@ -38,8 +38,8 @@ variable "availability_zones" {
 }
 
 variable "vpc-cidr" {
-    default = "10.0.0.0/16"
+  default = "10.0.0.0/16"
 }
 variable "subnets" {
-  default = ["10.0.0.0/20","10.0.16.0/20"]
+  default = ["10.0.0.0/20", "10.0.16.0/20"]
 }
