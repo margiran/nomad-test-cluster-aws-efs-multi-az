@@ -5,25 +5,29 @@ from diagrams import Diagram
 from diagrams import Cluster, Diagram, Edge
 from diagrams.custom import Custom
 from diagrams.aws.compute import EC2
+from diagrams.aws.storage import EFS
+from diagrams.aws.network import VPCElasticNetworkInterface
 from diagrams.onprem.compute import Nomad
 from diagrams.onprem.network import Consul
 from diagrams.onprem.security import Vault
 
-with Diagram("Simple Nomad cluster", show=False):
-
+with Diagram("AWS efs multi AZ Nomad", show=False):
     with Cluster("VPC"):
-        with Cluster("SubNet"):
-            with Cluster("Consul"):
-                c_server = Consul("Consul cluster")
+        with Cluster("availability zone a"):
+            with Cluster("SubNet-A"):
+                n_server = Nomad("Nomad Server")
+                n_client1 = Nomad("Nomad Client 1")
+                [ n_server] << n_client1
+                mt_a= VPCElasticNetworkInterface("Mount Target az-a")
+                [ mt_a ] - n_client1
 
-            with Cluster("Vault"):
-                v_server = Vault("Vault cluster")
+        with Cluster("availability zone b"):
+            with Cluster("SubNet-A"):
+                n_client2 = Nomad("Nomad Client 2")
+                [ n_server] << n_client2
+                mt_b= VPCElasticNetworkInterface("Mount Target az-b")
+                [ mt_b ] - n_client2
 
-            with Cluster("Nomad"):
-                n_server = Nomad("Nomad cluster")
-                n_client = Nomad("Client")
-
-            [ n_server] - n_client
-
-            c_server << [ v_server, n_server, n_client ]
-            v_server << [ c_server, n_server, n_client ]
+        efs=EFS("Amazon Elastic File System")
+        [ efs] - mt_a
+        [ efs] - mt_b

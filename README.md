@@ -1,5 +1,8 @@
 # Provision a Nomad cluster on AWS Using Terraform
 # A sample of using CSI plugin with AWS EFS in multi avalibality zones
+
+![datacenter image](https://github.com/margiran/nomad-test-cluster-aws-efs-multi-az/blob/main/diagram/aws_efs_multi_az_nomad.png)
+
 ## include the Nomad job files for plugins 
 
 ## Pre-requisites
