@@ -34,7 +34,7 @@ job "test-csi" {
 
       volume_mount {
         volume      = "efs-volume"
-        destination = "/efs"
+        destination = "/data"
         read_only   = false
       }
 
@@ -47,8 +47,6 @@ job "test-csi" {
       }
       template {
         data        = <<EOF
-dbfilename dumpnew.rdb 
-dir /efs/ 
 appendonly yes 
 save 900 1
 save 300 10
