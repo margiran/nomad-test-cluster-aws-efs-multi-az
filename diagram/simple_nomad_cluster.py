@@ -14,7 +14,7 @@ from diagrams.onprem.security import Vault
 with Diagram("AWS efs multi AZ Nomad", show=False):
     with Cluster("VPC"):
         with Cluster("availability zone a"):
-            with Cluster("SubNet-A"):
+            with Cluster("Subnet-A"):
                 n_server = Nomad("Nomad Server")
                 n_client1 = Nomad("Nomad Client 1")
                 [ n_server] << n_client1
@@ -22,7 +22,7 @@ with Diagram("AWS efs multi AZ Nomad", show=False):
                 [ mt_a ] - n_client1
 
         with Cluster("availability zone b"):
-            with Cluster("SubNet-A"):
+            with Cluster("Subnet-B"):
                 n_client2 = Nomad("Nomad Client 2")
                 [ n_server] << n_client2
                 mt_b= VPCElasticNetworkInterface("Mount Target az-b")

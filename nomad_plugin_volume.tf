@@ -25,6 +25,17 @@ resource "nomad_job" "csi-plugin-node" {
   null_resource.wait_for_nomad_api]
 }
 
+# wait for healhy csi plugin 
+resource "null_resource" "wait_for_plugin" {
+  provisioner "local-exec" {
+    command = "while [[ 2 >  `nomad plugin status aws-efs0 | awk '/Nodes Healthy/ {print $4}'` ]]; do echo 'waiting for healthy csi nodes...'; sleep 5; done"
+
+    environment = {
+      NOMAD_ADDR = "http://${aws_instance.nomad_server[0].public_ip}:4646"
+    }
+  }
+  depends_on = [nomad_job.csi-plugin-node]
+}
 resource "nomad_volume" "csi_volume_test" {
   type        = "csi"
   plugin_id   = "aws-efs0"
@@ -37,11 +48,11 @@ resource "nomad_volume" "csi_volume_test" {
     attachment_mode = "file-system"
   }
   depends_on = [aws_efs_file_system.efs-test,
-  nomad_job.csi-plugin-node]
+  nomad_job.csi-plugin-node,null_resource.wait_for_plugin ]
 }
 
 resource "nomad_job" "using_volume" {
   jobspec = file("./nomad-jobs/mount_volume.nomad")
 
-  depends_on = [nomad_volume.csi_volume_test]
+  depends_on = [null_resource.wait_for_plugin,nomad_volume.csi_volume_test]
 }
